@@ -1395,36 +1395,9 @@ class panopto_data {
      * @param int $moodlecourseid id of the current Moodle course
      */
     public static function get_course_role_mappings($moodlecourseid) {
-        global $DB;
-
-        $pubroles = [];
-        $creatorroles = [];
-
-         // Get creator roles as an array.
-        $creatorrolesraw = $DB->get_records(
-            'block_panopto_creatormap',
-            ['moodle_id' => $moodlecourseid],
-            'id,role_id'
-        );
-
-        if (isset($creatorrolesraw) && !empty($creatorrolesraw)) {
-            foreach ($creatorrolesraw as $creatorrole) {
-                $creatorroles[] = $creatorrole->role_id;
-            }
-        }
-
-         // Get publisher roles as an array.
-        $pubrolesraw = $DB->get_records(
-            'block_panopto_publishermap',
-            ['moodle_id' => $moodlecourseid],
-            'id,role_id'
-        );
-
-        if (isset($pubrolesraw) && !empty($pubrolesraw)) {
-            foreach ($pubrolesraw as $pubrole) {
-                $pubroles[] = $pubrole->role_id;
-            }
-        }
+        $context = context_course::instance($moodlecourseid);
+        $pubroles = array_keys(get_roles_with_capability('block/panopto:provision_aspublisher', CAP_ALLOW, $context));
+        $creatorroles = array_keys(get_roles_with_capability('block/panopto:provision_asteacher', CAP_ALLOW, $context));
 
         return ['publisher' => $pubroles, 'creator' => $creatorroles];
     }
@@ -1523,37 +1496,6 @@ class panopto_data {
     }
 
     /**
-     * Set the selected Panopto role mappings for the current course on the db
-     *
-     * @param int $moodlecourseid id of the current Moodle course
-     * @param array $publisherroles a list of publisher roles
-     * @param array $creatorroles a list of creator roles
-     */
-    public static function set_course_role_mappings($moodlecourseid, $publisherroles, $creatorroles) {
-        global $DB;
-
-        // Delete all old records to prevent non-existant mapping staying when they shouldn't.
-        $DB->delete_records('block_panopto_publishermap', ['moodle_id' => $moodlecourseid]);
-
-        foreach ($publisherroles as $pubrole) {
-            if (!empty($pubrole)) {
-                $row = (object) ['moodle_id' => $moodlecourseid, 'role_id' => $pubrole];
-                $DB->insert_record('block_panopto_publishermap', $row);
-            }
-        }
-
-        // Delete all old records to prevent non-existant mapping staying when they shouldn't.
-        $DB->delete_records('block_panopto_creatormap', ['moodle_id' => $moodlecourseid]);
-
-        foreach ($creatorroles as $creatorrole) {
-            if (!empty($creatorrole)) {
-                $row = (object) ['moodle_id' => $moodlecourseid, 'role_id' => $creatorrole];
-                $DB->insert_record('block_panopto_creatormap', $row);
-            }
-        }
-    }
-
-    /**
      * Delete the Panopto foldermap row, called when a course is deleted.
      * This function is unused but kept in case we decide to reintroduce the cleaning of table rows.
      *
@@ -1572,22 +1514,6 @@ class panopto_data {
             $deletedrecords['foldermap'] = $DB->delete_records(
                 'block_panopto_foldermap',
                 ['moodleid' => $moodlecourseid]
-            );
-        }
-
-        // Clean up any creator role mappings.
-        if ($DB->get_records('block_panopto_creatormap', ['moodle_id' => $moodlecourseid])) {
-            $DB->delete_records(
-                'block_panopto_creatormap',
-                ['moodle_id' => $moodlecourseid]
-            );
-        }
-
-        // Clean up any publisher role mappings.
-        if ($DB->get_records('block_panopto_publishermap', ['moodle_id' => $moodlecourseid])) {
-            $DB->delete_records(
-                'block_panopto_publishermap',
-                ['moodle_id' => $moodlecourseid]
             );
         }
 

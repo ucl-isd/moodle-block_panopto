@@ -469,5 +469,27 @@ function xmldb_block_panopto_upgrade($oldversion = 0) {
         upgrade_block_savepoint(true, 2024120601, 'panopto');
     }
 
+    if ($oldversion < 2024120602) {
+
+        // Drop old table block_panopto_creatormap.
+        $table = new xmldb_table('block_panopto_creatormap');
+
+        // Conditionally launch drop table for block_panopto_creatormap.
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+
+        // Drop old table block_panopto_publishermap.
+        $table = new xmldb_table('block_panopto_publishermap');
+
+        // Conditionally launch drop table for block_panopto_publishermap.
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+
+        // Panopto savepoint reached.
+        upgrade_block_savepoint(true, 2024120602, 'panopto');
+    }
+
     return true;
 }
