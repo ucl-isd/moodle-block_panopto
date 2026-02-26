@@ -99,8 +99,6 @@ import {renderForPromise, replaceNodeContents} from "core/templates";
      */
     const showLoadError = (node, error) =>
     {
-        node.find('.loading_text').remove();
-
         // Show a fixed message as text and leave the details to the developer log.
         log.error(error);
         get_string('load_content_error', 'block_panopto')
