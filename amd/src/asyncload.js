@@ -58,6 +58,7 @@ import {renderForPromise, replaceNodeContents} from "core/templates";
         {
             e.preventDefault();
             submitSso(node, this.href, '_blank');
+
         });
 
         node.on('click', '[data-action="panopto-notes"]', function(e)
@@ -98,7 +99,7 @@ import {renderForPromise, replaceNodeContents} from "core/templates";
      */
     const showLoadError = (node, error) =>
     {
-        node.find('#loading_text').remove();
+        node.find('.loading_text').remove();
 
         // Show a fixed message as text and leave the details to the developer log.
         log.error(error);
