@@ -20,14 +20,12 @@
  * @copyright  Panopto 2025
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define([
-        "jquery",
-        "core/ajax",
-        "core/str",
-        "core/log",
-        "core/templates",
-], ($, ajax, str, log, templates) =>
-{
+import $ from "jquery";
+import {call as fetchMany} from "core/ajax";
+import {get_string} from "core/str";
+import * as log from "core/log";
+import {renderForPromise, replaceNodeContents} from "core/templates";
+
     /**
      * Post the block's SSO form to a Panopto page, so the user arrives there signed in.
      *
@@ -35,7 +33,7 @@ define([
      * @param {string} url The Panopto page to open.
      * @param {string} target The name of the window or tab to open it in.
      */
-    var submitSso = (node, url, target) =>
+    const submitSso = (node, url, target) =>
     {
         var form = node.find('form[data-region="panopto-sso-form"]')[0];
         if (!form)
@@ -54,7 +52,7 @@ define([
      *
      * @param {jQuery} node The block's content container.
      */
-    var registerEventListeners = (node) =>
+    const registerEventListeners = (node) =>
     {
         node.on('click', '[data-action="panopto-sso"]', function(e)
         {
@@ -98,13 +96,13 @@ define([
      * @param {jQuery} node The block's content container.
      * @param {Object} error The failure, an exception object rather than markup.
      */
-    var showLoadError = (node, error) =>
+    const showLoadError = (node, error) =>
     {
         node.find('#loading_text').remove();
 
         // Show a fixed message as text and leave the details to the developer log.
         log.error(error);
-        str.get_string('load_content_error', 'block_panopto')
+        get_string('load_content_error', 'block_panopto')
             .then(function(message)
             {
                 node.text(message);
@@ -120,7 +118,7 @@ define([
      * @param {string} params.id The id of the element that holds the block's content.
      * @param {number} params.courseid The course whose Panopto content is loaded.
      */
-    var init = (params) =>
+    export const initblock = (params) =>
     {
         // Find the div containing the Panopto block's content.
         var mynode = $('#' + params.id);
@@ -139,20 +137,19 @@ define([
                 };
 
                 // The web service returns data, not markup; the template escapes every value.
-                ajax.call([request])[0].done(function(response)
+                fetchMany([request])[0].then(function(response)
                 {
-                    templates.renderForPromise('block_panopto/block_content', response)
+                    renderForPromise('block_panopto/block_content', response)
                         .then(function(rendered)
                         {
-                            templates.replaceNodeContents(mynode, rendered.html, rendered.js);
+                            replaceNodeContents(mynode, rendered.html, rendered.js);
                             return rendered;
                         })
                         .catch(function(error)
                         {
                             showLoadError(mynode, error);
                         });
-                })
-                .fail(function(error)
+                }).catch(function(error)
                 {
                     showLoadError(mynode, error);
                 });
@@ -163,7 +160,3 @@ define([
             log.debug("Couldn't find element with id: " + params.id);
         }
     };
-    return {
-        initblock: init,
-    };
-});
