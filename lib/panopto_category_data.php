@@ -21,6 +21,8 @@
  * @copyright  Panopto 2009 - 2018 /With contributions from Spenser Jones (sjones@ambrose.edu), and Tim Lock
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+use core\output\stored_progress_bar;
+
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
@@ -368,8 +370,14 @@ class panopto_category_data {
      * @param bool $usehtmloutput if we should use html output or not
      * @param string $selectedserver server name
      * @param string $selectedkey selected key
+     * @param ?stored_progress_bar $progress Optional progress bar to update during build.
      */
-    public static function build_category_structure($usehtmloutput, $selectedserver, $selectedkey) {
+    public static function build_category_structure(
+        $usehtmloutput,
+        $selectedserver,
+        $selectedkey,
+        ?stored_progress_bar $progress = null
+    ) {
         global $CFG, $DB;
 
         \panopto_data::print_log(get_string('build_category_structure_start', 'block_panopto', $selectedserver));
@@ -392,17 +400,27 @@ class panopto_category_data {
             $leafcategories = $DB->get_records_sql(
                 'SELECT id FROM {course_categories} WHERE id NOT IN (SELECT parent FROM {course_categories})'
             );
+            $built = 0;
 
             // Every leaf walks up to the root, so load the categories once rather than per level per leaf.
             $categorybuilder->categories = $DB->get_records('course_categories', null, '', 'id,name,parent');
 
+            $built = 0;
             foreach ($leafcategories as $leafcategory) {
                 $categorybuilder->moodlecategoryid = $leafcategory->id;
-                $categorybuilder->ensure_category_branch($usehtmloutput, null);
-
-                // Every branch is a Panopto round trip that echoes its own result block, so push
-                // it out rather than leaving the admin on a blank page for the whole run.
-                panopto_bulk_flush_output();
+                $result = $categorybuilder->ensure_category_branch($usehtmloutput, null);
+                if ($result && $progress) {
+                    $built++;
+                    $progress->update($built, count($leafcategories), get_string('categoriesbuilt', 'block_panopto', $built));
+                }
+                if ($usehtmloutput) {
+                    // Keep the admin page responsive while each branch makes its Panopto round trip.
+                    panopto_bulk_flush_output();
+                }
+            }
+            if ($built < count($leafcategories) && $progress) {
+                $progress->error(get_string('categoriesbuilderror', 'block_panopto'));
+                \panopto_data::print_log('categoriesbuilderror', 'block_panopto');
             }
 
             \block_panopto\event\bulk_operation_completed::create([
