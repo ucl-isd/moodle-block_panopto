@@ -409,106 +409,10 @@ function xmldb_block_panopto_upgrade($oldversion = 0) {
         upgrade_block_savepoint(true, 2021063000, 'panopto');
     }
 
-<<<<<<< HEAD
-    if ($oldversion < 2026081900) {
-        // The debug log used to be written to $CFG->dirroot, which is inside the web root and
-        // so was fetchable over HTTP. It now goes to $CFG->dataroot. Delete the old file if it
-        // is still sitting there - moving the write path does nothing for sites that already
-        // have one. dirroot is commonly read-only, so on failure tell the admin instead of
-        // failing the upgrade.
-        $legacylogpath = $CFG->dirroot . '/PanoptoLogs.txt';
 
-        if (file_exists($legacylogpath) && !@unlink($legacylogpath)) {
-            echo $OUTPUT->notification(
-                get_string('legacy_log_cleanup_failed', 'block_panopto', $legacylogpath),
-                'notifywarning'
-            );
-        }
-
-        // Panopto savepoint reached.
-        upgrade_block_savepoint(true, 2026081900, 'panopto');
-    }
-
-    if ($oldversion < 2026092100) {
-        // Event-driven sync gained two switches. Existing sites were syncing on every event
-        // before, so write the "on" value explicitly rather than relying on the settings
-        // default, which Moodle only stores once an admin visits the settings page.
-        if (get_config('block_panopto', 'event_sync_enabled') === false) {
-            set_config('event_sync_enabled', 1, 'block_panopto');
-        }
-
-        if (get_config('block_panopto', 'sync_on_unenrolment') === false) {
-            set_config('sync_on_unenrolment', 1, 'block_panopto');
-        }
-
-        // Panopto savepoint reached.
-        upgrade_block_savepoint(true, 2026092100, 'panopto');
-=======
-    if ($oldversion < 2024120601) {
-        $systemcontextid = $DB->get_field('context', 'id', ['contextlevel' => 10]);
-        $mappedpublisherroles = get_config('block_panopto', 'publisher_role_mapping');
-        $mappedpublisherroles = $mappedpublisherroles ? explode(',', $mappedpublisherroles) : [];
-        $mappedcreatorroles = get_config('block_panopto', 'creator_role_mapping');
-        $mappedcreatorroles = $mappedcreatorroles ? explode(',', $mappedcreatorroles) : [];
-
-        /*
-         * $mappedroles: array of course-level roles currently having overridden capabilities, for example:
-         *   [
-         *      ['roleid' => 2, 'capability' => 'block/panopto:provision_aspublisher'],
-         *      ['roleid' => 3, 'capability' => 'block/panopto:provision_aspublisher'],
-         *      ['roleid' => 3, 'capability' => 'block/panopto:provision_asteacher'],
-         *      ['roleid' => 4, 'capability' => 'block/panopto:provision_asteacher'],
-         *   ]
-         */
-        $mappedroles = array_merge(
-            array_map(function (int $value) {
-                return ['capability' => 'block/panopto:provision_aspublisher', 'roleid' => $value];
-            }, $mappedpublisherroles),
-            array_map(function (int $value) {
-                return ['capability' => 'block/panopto:provision_asteacher', 'roleid' => $value];
-            }, $mappedcreatorroles)
-        );
-
-        foreach ($mappedroles as $rc) {
-            $roleid = $rc['roleid'];
-            $capability = $rc['capability'];
-            $params = ['roleid' => $roleid, 'contextid' => $systemcontextid,
-                'capability' => $capability];
-
-            // Modify course-level roles making provision_as... = "Allow" (only
-            // if there's no existing record for this capability for the role).
-            if (!$DB->record_exists('role_capabilities', $params)) {
-                $record = new stdClass();
-                $record->contextid = $systemcontextid;
-                $record->roleid = $roleid;
-                $record->capability = $capability;
-                $record->permission = 1;
-                $record->timemodified = time();
-                $DB->insert_record('role_capabilities', $record);
-            }
-
-            // Delete overridden capabilities at course level.
-            $DB->execute(
-                "DELETE FROM {role_capabilities}
-                       WHERE capability = :capability
-                             AND roleid = $roleid AND permission = 1
-                             AND contextid IN (SELECT id FROM {context} WHERE contextlevel = 50)",
-                ['capability' => $capability]
-            );
-        }
-
-        // Delete configs of removed settings.
-        unset_config('publisher_system_role_mapping', 'block_panopto');
-        unset_config('publisher_role_mapping', 'block_panopto');
-        unset_config('creator_role_mapping', 'block_panopto');
-
-        // Panopto savepoint reached.
-        upgrade_block_savepoint(true, 2024120601, 'panopto');
->>>>>>> 6eb6596 (Rework provision_as permissions)
     }
 
     if ($oldversion < 2024120602) {
-
         // Drop old table block_panopto_creatormap.
         $table = new xmldb_table('block_panopto_creatormap');
 
