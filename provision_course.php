@@ -140,16 +140,31 @@ echo $OUTPUT->header();
 if ($courses) {
     $coursecount = count($courses);
     // Provisioning syncs every enrolled user to Panopto, so even one large course can outlast
-    // the default time limit.
+    // the default time limit. This also keeps a direct single-course run safe; bulk work is
+    // queued below and has its own task time limit.
     core_php_time_limit::raise();
 
-    foreach ($courses as $courseid) {
-        if (empty($courseid)) {
-            continue;
-        }
+    if ($courseidparam === 0 && $coursecount > 0) {
+        $task = new \block_panopto\task\provision_courses();
+        $task->set_custom_data(['courseids' => $courses, 'selectedserver' => $selectedserver, 'selectedkey' => $selectedkey]);
 
+        if ($taskid = \core\task\manager::queue_adhoc_task($task)) {
+            $task->set_id($taskid);
+
+            if ($progressbaridnumber = $task->progress_start()) {
+                $progressbar = \core\output\stored_progress_bar::get_by_idnumber($progressbaridnumber);
+                echo $progressbar->get_content();
+                echo "<p>" .
+                    get_string(
+                        'viewtasklog',
+                        'block_panopto',
+                        new moodle_url('/admin/tasklogs.php', ['filter' => '\block_panopto\task\provision_courses'])
+                    ) . "</p>";
+            }
+        }
+    } else {
         // Set the current Moodle course to retrieve info for / provision.
-        $panoptodata = new \panopto_data($courseid);
+        $panoptodata = new \panopto_data($courses[0]);
 
         // If an application key and server name are pre-set (happens when provisioning from multi-select page) use those,
         // otherwise retrieve values from the db.
