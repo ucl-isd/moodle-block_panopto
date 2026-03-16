@@ -470,7 +470,6 @@ function xmldb_block_panopto_upgrade($oldversion = 0) {
     }
 
     if ($oldversion < 2024120602) {
-
         // Drop old table block_panopto_creatormap.
         $table = new xmldb_table('block_panopto_creatormap');
 
