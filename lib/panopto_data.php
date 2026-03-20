@@ -1076,6 +1076,13 @@ class panopto_data {
 
             $currentcourses = enrol_get_users_courses($userid, true);
 
+            // Include the current course (if set). The user may not be
+            // enrolled on this course, but may have viewer, creator or
+            // publisher roles if they're enrolled in a parent category.
+            if (isset($this->moodlecourseid)) {
+                $currentcourses[$this->moodlecourseid] = (object)['id' => $this->moodlecourseid];
+            }
+
             // Go through each course.
             $groupstosync = [];
             foreach ($currentcourses as $course) {
