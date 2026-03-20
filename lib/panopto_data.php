@@ -1120,7 +1120,13 @@ class panopto_data {
 
             $currentcourses = enrol_get_users_courses($userid, true);
 
-            // One query for every course's mapping instead of a panopto_data per course.
+// Include the current course as well as enrolled courses. The user may not be enrolled here,
+            // but may have viewer, creator or publisher roles through a parent category.
+            if (isset($this->moodlecourseid)) {
+                $currentcourses[$this->moodlecourseid] = (object)['id' => $this->moodlecourseid];
+            }
+
+            // Load mappings in one query rather than creating a panopto_data object for each course.
             $foldermaps = [];
             if (!empty($currentcourses)) {
                 [$insql, $params] = $DB->get_in_or_equal(array_keys($currentcourses));
