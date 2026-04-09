@@ -407,7 +407,7 @@ function xmldb_block_panopto_upgrade($oldversion = 0) {
         upgrade_block_savepoint(true, 2021063000, 'panopto');
     }
 
-    if ($oldversion < 2024120601) {
+    if ($oldversion < 2026031500) {
         $systemcontextid = $DB->get_field('context', 'id', ['contextlevel' => 10]);
         $mappedpublisherroles = get_config('block_panopto', 'publisher_role_mapping');
         $mappedpublisherroles = $mappedpublisherroles ? explode(',', $mappedpublisherroles) : [];
@@ -466,10 +466,10 @@ function xmldb_block_panopto_upgrade($oldversion = 0) {
         unset_config('creator_role_mapping', 'block_panopto');
 
         // Panopto savepoint reached.
-        upgrade_block_savepoint(true, 2024120601, 'panopto');
+        upgrade_block_savepoint(true, 2026031500, 'panopto');
     }
 
-    if ($oldversion < 2024120602) {
+    if ($oldversion < 2026031600) {
         // Drop old table block_panopto_creatormap.
         $table = new xmldb_table('block_panopto_creatormap');
 
@@ -487,7 +487,7 @@ function xmldb_block_panopto_upgrade($oldversion = 0) {
         }
 
         // Panopto savepoint reached.
-        upgrade_block_savepoint(true, 2024120602, 'panopto');
+        upgrade_block_savepoint(true, 2026031600, 'panopto');
     }
 
     return true;
