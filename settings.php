@@ -174,6 +174,15 @@ if ($ADMIN->fulltree) {
     );
 
     $settings->add(
+        new admin_setting_configcheckbox(
+            'block_panopto/unified_username',
+            get_string('block_panopto_unified_username', 'block_panopto'),
+            get_string('block_panopto_unified_username_desc', 'block_panopto'),
+            0
+        )
+    );
+
+    $settings->add(
         new admin_setting_heading(
             'block_panopto/api_throttling',
             get_string('block_panopto_api_throttling_heading', 'block_panopto'),

@@ -219,9 +219,10 @@ class panopto_user_soap_client extends PanoptoTimeoutSoapClient {
             $this->authparam,
             $userkey
         );
+        $onlyunified = get_config('block_panopto', 'unified_username');
 
         // Try primary lookup.
-        if ($this->usermanagementserviceget->GetUserByKey($getuserbykeyparams)) {
+        if (!$onlyunified && $this->usermanagementserviceget->GetUserByKey($getuserbykeyparams)) {
             return $this->usermanagementserviceget->getResult()->GetUserByKeyResult;
         } else {
             // Try again with unified username format.
