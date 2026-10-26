@@ -1575,6 +1575,8 @@ class panopto_data {
                 '>='
             );
 
+            $mappedids = $DB->get_records_sql_menu("SELECT DISTINCT panopto_id FROM {block_panopto_foldermap}");
+
             foreach ($panoptofolders as $folderinfo) {
                 // Filter folders based on the following criteria.
                 // 1/ Only add a folder to the course options if it is not already mapped to a course on moodle.
@@ -1586,7 +1588,7 @@ class panopto_data {
                     : false;
 
                 if (
-                    (!$DB->get_records('block_panopto_foldermap', ['panopto_id' => $folderinfo->Id])
+                    (!isset($mappedids[$folderinfo->Id])
                     || ($this->sessiongroupid === $folderinfo->Id))
                     && !$isassignmentfolder
                 ) {
