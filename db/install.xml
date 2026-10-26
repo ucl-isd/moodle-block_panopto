@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="blocks/panopto/db" VERSION="20150115" COMMENT="XMLDB file for Panopto Focus block"
+<XMLDB PATH="blocks/panopto/db" VERSION="20260603" COMMENT="XMLDB file for Panopto Focus block"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -20,6 +20,7 @@
         <INDEXES>
             <INDEX NAME="mdl_blocpanofold_moo_ix" UNIQUE="false" FIELDS="moodleid" COMMENT="index on moodle course id"/>
             <INDEX NAME="mdl_blocpanofold_pan_ix" UNIQUE="false" FIELDS="panopto_server" COMMENT="index on panopto_server"/>
+            <INDEX NAME="mdl_blocpanofold_panid_ix" UNIQUE="false" FIELDS="panopto_id" COMMENT="index on panopto folder id"/>
         </INDEXES>
     </TABLE>
     <TABLE NAME="block_panopto_importmap" COMMENT="Map Moodle courses to imported courses">
