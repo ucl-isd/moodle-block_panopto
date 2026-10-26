@@ -502,7 +502,7 @@ function xmldb_block_panopto_upgrade($oldversion = 0) {
         }
 
         // Panopto savepoint reached.
-        upgrade_block_savepoint(true, 2026022501, 'panopto');
+        upgrade_block_savepoint(true, 2026031602, 'panopto');
     }      
 
     return true;
